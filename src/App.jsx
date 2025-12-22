@@ -32,11 +32,11 @@ import {
   DialogContent,
 } from '@fluentui/react-components';
 
-import { 
-  ArrowDownloadRegular, 
-  SearchRegular, 
-  BoxRegular, 
-  DocumentRegular, 
+import {
+  ArrowDownloadRegular,
+  SearchRegular,
+  BoxRegular,
+  DocumentRegular,
   ErrorCircleRegular,
   SettingsRegular,
   WeatherMoonRegular,
@@ -120,7 +120,7 @@ function App() {
   const [isDark, setIsDark] = useState(() => localStorage.getItem('theme') !== 'light');
   const [backend, setBackend] = useState(() => localStorage.getItem('backend') || 'https://qsl-api.krnl64.win');
   const [customMarket, setCustomMarket] = useState(() => localStorage.getItem('customMarket') || '');
-  
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [results, setResults] = useState([]);
@@ -145,7 +145,7 @@ function App() {
     if (!formData.productInput) return;
     setLoading(true);
     setError('');
-    
+
     try {
       const apiUrl = `${backend.replace(/\/$/, '')}/api/links/resolve-all`;
       const res = await fetch(apiUrl, {
@@ -159,10 +159,10 @@ function App() {
 
       if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
       const data = await res.json();
-      
+
       const appx = data.appxPackages || data.appx || data.Appx || [];
       const nonAppx = data.nonAppxPackages || data.nonAppx || data.NonAppx || [];
-      
+
       setResults([
         ...appx.map(i => ({ ...i, type: 'APPX' })),
         ...nonAppx.map(i => ({ ...i, type: 'Non-APPX' }))
@@ -177,12 +177,12 @@ function App() {
   return (
     <FluentProvider theme={isDark ? webDarkTheme : webLightTheme} className={styles.root}>
       <nav className={styles.topNav}>
-        <Button 
-          appearance="subtle" 
-          icon={isDark ? <WeatherSunnyRegular /> : <WeatherMoonRegular />} 
+        <Button
+          appearance="subtle"
+          icon={isDark ? <WeatherSunnyRegular /> : <WeatherMoonRegular />}
           onClick={() => setIsDark(!isDark)}
         />
-        
+
         <Dialog>
           <DialogTrigger disableButtonEnhancement>
             <Button appearance="subtle" icon={<SettingsRegular />}>Advanced</Button>
@@ -193,11 +193,11 @@ function App() {
               <DialogContent className={styles.dialogContent}>
                 <div>
                   <Label weight="semibold">Backend Server</Label>
-                  <Input style={{width: '100%'}} value={backend} onChange={(e) => setBackend(e.target.value)} />
+                  <Input style={{ width: '100%' }} value={backend} onChange={(e) => setBackend(e.target.value)} />
                 </div>
                 <div>
                   <Label weight="semibold">Override Market (ISO)</Label>
-                  <Input style={{width: '100%'}} value={customMarket} onChange={(e) => setCustomMarket(e.target.value)} placeholder="e.g. CN, US, JP" />
+                  <Input style={{ width: '100%' }} value={customMarket} onChange={(e) => setCustomMarket(e.target.value)} placeholder="e.g. CN, US, JP" />
                 </div>
               </DialogContent>
               <DialogActions>
@@ -218,21 +218,21 @@ function App() {
         <Card style={{ padding: '30px' }}>
           <div className={styles.heroInputSection}>
             <Label htmlFor="url" size="large" weight="bold">Product URL or ID</Label>
-            <Input 
+            <Input
               id="url"
-              contentBefore={<BoxRegular />} 
+              contentBefore={<BoxRegular />}
               size="large"
               style={{ width: '100%' }}
               placeholder="Paste URL or ID (e.g., 9WZDNCRFJBMP)"
               value={formData.productInput}
-              onChange={(e) => setFormData(p => ({...p, productInput: e.target.value}))}
+              onChange={(e) => setFormData(p => ({ ...p, productInput: e.target.value }))}
             />
           </div>
 
           <div className={styles.controlsGrid}>
             <div>
               <Label weight="semibold">Market</Label>
-              <Select style={{ width: '100%' }} value={formData.market} onChange={(e) => setFormData(p => ({...p, market: e.target.value}))}>
+              <Select style={{ width: '100%' }} value={formData.market} onChange={(e) => setFormData(p => ({ ...p, market: e.target.value }))}>
                 <option value="US">United States (US)</option>
                 <option value="CN">China (CN)</option>
                 <option value="GB">United Kingdom (GB)</option>
@@ -241,7 +241,7 @@ function App() {
 
             <div>
               <Label weight="semibold">Ring</Label>
-              <Select style={{ width: '100%' }} value={formData.ring} onChange={(e) => setFormData(p => ({...p, ring: e.target.value}))}>
+              <Select style={{ width: '100%' }} value={formData.ring} onChange={(e) => setFormData(p => ({ ...p, ring: e.target.value }))}>
                 <option value="Retail">Retail</option>
                 <option value="RP">Release Preview</option>
                 <option value="Fast">Insider Fast</option>
@@ -250,11 +250,18 @@ function App() {
 
             <div className={styles.actions}>
               <div style={{ display: 'flex', gap: '20px' }}>
-                <Checkbox label="APPX" checked={formData.includeAppx} onChange={(e, d) => setFormData(p => ({...p, includeAppx: !!d.checked}))} />
-                <Checkbox label="Non-APPX" checked={formData.includeNonAppx} onChange={(e, d) => setFormData(p => ({...p, includeNonAppx: !!d.checked}))} />
+                <Checkbox label="APPX" checked={formData.includeAppx} onChange={(e, d) => setFormData(p => ({ ...p, includeAppx: !!d.checked }))} />
+                <Checkbox label="Non-APPX" checked={formData.includeNonAppx} onChange={(e, d) => setFormData(p => ({ ...p, includeNonAppx: !!d.checked }))} />
               </div>
-              <Button appearance="primary" icon={<SearchRegular />} size="large" loading={loading} onClick={handleResolve}>
-                Resolve Links
+              <Button
+                appearance="primary"
+                icon={<SearchRegular />}
+                size="large"
+                loading={loading}
+                disabled={loading || !formData.productInput}
+                onClick={handleResolve}
+              >
+                {loading ? "Resolving..." : "Resolve Links"}
               </Button>
             </div>
           </div>
@@ -278,7 +285,7 @@ function App() {
                 <TableBody>
                   {results.map((item, idx) => (
                     <TableRow key={idx}>
-                      <TableCell><DocumentRegular style={{marginRight: '8px'}}/> {item.fileName || item.FileName}</TableCell>
+                      <TableCell><DocumentRegular style={{ marginRight: '8px' }} /> {item.fileName || item.FileName}</TableCell>
                       <TableCell>{item.fileSize || item.FileSize}</TableCell>
                       <TableCell><Badge appearance="tint">{item.type}</Badge></TableCell>
                       <TableCell><Link href={item.fileLink || item.FileLink} target="_blank">Download</Link></TableCell>
