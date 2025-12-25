@@ -141,6 +141,14 @@ function App() {
     localStorage.setItem('customMarket', customMarket);
   }, [isDark, backend, customMarket]);
 
+  const handleClearSettings = () => {
+    setBackend('https://qsl-worker-api.krnl64.win');
+    setCustomMarket('');
+    setFormData(p => ({ ...p, locale: 'en-US' }));
+    localStorage.removeItem('backend');
+    localStorage.removeItem('customMarket');
+  };
+
   const handleResolve = async () => {
     if (!formData.productInput) return;
     setLoading(true);
@@ -199,8 +207,23 @@ function App() {
                   <Label weight="semibold">Override Market (ISO)</Label>
                   <Input style={{ width: '100%' }} value={customMarket} onChange={(e) => setCustomMarket(e.target.value)} placeholder="e.g. CN, US, JP" />
                 </div>
+                <div>
+                  <Label weight="semibold">Override Locale</Label>
+                  <Input
+                    style={{ width: '100%' }}
+                    value={formData.locale}
+                    onChange={(e) => setFormData(p => ({ ...p, locale: e.target.value }))}
+                    placeholder="e.g. en-US, zh-CN"
+                  />
+                </div>
               </DialogContent>
               <DialogActions>
+                <Button
+                  appearance="subtle"
+                  onClick={handleClearSettings}
+                >
+                  Clear Settings
+                </Button>
                 <DialogTrigger disableButtonEnhancement>
                   <Button appearance="primary">Close</Button>
                 </DialogTrigger>
@@ -240,11 +263,26 @@ function App() {
             </div>
 
             <div>
+              <Label weight="semibold">Locale</Label>
+              <Select
+                style={{ width: '100%' }}
+                value={formData.locale}
+                onChange={(e) => setFormData(p => ({ ...p, locale: e.target.value }))}
+              >
+                <option value="en-US">English (US)</option>
+                <option value="zh-CN">Chinese (Simplified)</option>
+                <option value="ja-JP">Japanese (JP)</option>
+                <option value="de-DE">German (DE)</option>
+              </Select>
+            </div>
+
+            <div>
               <Label weight="semibold">Ring</Label>
               <Select style={{ width: '100%' }} value={formData.ring} onChange={(e) => setFormData(p => ({ ...p, ring: e.target.value }))}>
                 <option value="Retail">Retail</option>
                 <option value="RP">Release Preview</option>
                 <option value="Fast">Insider Fast</option>
+                <option value="Slow">Slow</option>
               </Select>
             </div>
 
