@@ -572,7 +572,7 @@ function App() {
         <footer className={styles.footer}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <CodeRegular />
-            <Link href="https://github.com/ntkrnl64/query-store-links" target="_blank">GitHub</Link>
+            <Link href="https://github.com/query-store-links/ui" target="_blank">GitHub</Link>
           </div>
           <span>•</span>
           <Body1>© 2025 QueryStoreLinks</Body1>
