@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   FluentProvider,
   webDarkTheme,
@@ -30,6 +30,11 @@ import {
   DialogBody,
   DialogActions,
   DialogContent,
+  MessageBar,
+  MessageBarBody,
+  MessageBarTitle,
+  ProgressBar,
+  Tooltip,
 } from '@fluentui/react-components';
 
 import {
@@ -37,94 +42,310 @@ import {
   SearchRegular,
   BoxRegular,
   DocumentRegular,
-  ErrorCircleRegular,
   SettingsRegular,
   WeatherMoonRegular,
   WeatherSunnyRegular,
-  CodeRegular
+  CodeRegular,
+  CopyRegular,
+  CheckmarkRegular,
+  Cube24Regular,
 } from '@fluentui/react-icons';
 
-import './index.css';
+function useLocalStorage(key, defaultValue) {
+  const [value, setValue] = useState(() => {
+    try {
+      const raw = localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : defaultValue;
+    } catch {
+      return defaultValue;
+    }
+  });
+
+  const setAndStore = (newValue) => {
+    const valueToStore = newValue instanceof Function ? newValue(value) : newValue;
+    setValue(valueToStore);
+    localStorage.setItem(key, JSON.stringify(valueToStore));
+  };
+
+  return [value, setAndStore];
+}
+
+const normalizeData = (items, type) => {
+  if (!items || !Array.isArray(items)) return [];
+  return items.map(item => ({
+    name: item.fileName || item.FileName || "Unknown",
+    size: item.fileSize || item.FileSize || "N/A",
+    url: item.fileLink || item.FileLink || "#",
+    expire: item.fileExpire || item.FileExpire,
+    type: type
+  }));
+};
 
 const useStyles = makeStyles({
   root: {
     minHeight: '100vh',
-    width: '100vw',
     display: 'flex',
     flexDirection: 'column',
-    backgroundColor: tokens.colorNeutralBackground1,
+    backgroundColor: tokens.colorNeutralBackground2,
+  },
+  nav: {
+    display: 'flex',
+    justifyContent: 'flex-end',
+    ...shorthands.padding('16px', '24px'),
+    gap: '8px',
+    // 手机端减少 Padding
+    '@media (max-width: 600px)': {
+       ...shorthands.padding('12px', '16px'),
+    }
   },
   container: {
     width: '100%',
-    boxSizing: 'border-box',
-    ...shorthands.padding('20px', '40px'),
+    maxWidth: '1000px',
+    margin: '0 auto',
+    ...shorthands.padding('0', '24px', '48px'),
     display: 'flex',
     flexDirection: 'column',
-    gap: '20px',
+    gap: '24px',
     flexGrow: 1,
-  },
-  topNav: {
-    display: 'flex',
-    justifyContent: 'flex-end',
-    ...shorthands.padding('10px', '40px'),
-    gap: '8px',
+    boxSizing: 'border-box',
+    '@media (max-width: 600px)': {
+       ...shorthands.padding('0', '16px', '24px'),
+       gap: '16px',
+    }
   },
   header: {
     textAlign: 'center',
-    marginBottom: '10px',
-  },
-  heroInputSection: {
-    width: '100%',
+    marginBottom: '16px',
     display: 'flex',
     flexDirection: 'column',
+    alignItems: 'center',
     gap: '8px',
-    marginBottom: '20px',
   },
-  controlsGrid: {
+  card: {
+    ...shorthands.padding('32px'),
+    boxShadow: tokens.shadow8,
+    backgroundColor: tokens.colorNeutralBackground1,
+    '@media (max-width: 600px)': {
+       ...shorthands.padding('16px'),
+    }
+  },
+  inputSection: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '6px',
+    marginBottom: '24px',
+  },
+  gridControls: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(100%, 1fr))', 
+    '@media (min-width: 600px)': {
+        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+    },
     gap: '20px',
     alignItems: 'end',
   },
-  actions: {
+  checkboxGroup: {
+    display: 'flex',
+    gap: '16px',
+    marginTop: '8px',
+  },
+  actionRow: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: '10px',
-    gridColumn: '1 / -1',
+    marginTop: '24px',
     flexWrap: 'wrap',
-    gap: '12px'
+    gap: '16px',
+    '@media (max-width: 600px)': {
+       flexDirection: 'column',
+       alignItems: 'stretch',
+    }
+  },
+  tableContainer: {
+    overflowX: 'auto',
+    maxHeight: '600px',
+    overflowY: 'auto',
+    WebkitOverflowScrolling: 'touch', 
   },
   footer: {
-    textAlign: 'center',
-    ...shorthands.padding('24px'),
-    borderTop: `1px solid ${tokens.colorNeutralStroke1}`,
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: '12px',
+    gap: '8px',
+    marginTop: 'auto',
+    paddingTop: '32px',
+    paddingBottom: '24px',
     color: tokens.colorNeutralForeground3,
+    fontSize: '12px',
+    flexWrap: 'wrap',
   },
-  dialogContent: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '16px',
-    ...shorthands.padding('10px', '0'),
+  hideOnMobile: {
+    '@media (max-width: 600px)': {
+      display: 'none',
+    }
   }
 });
+
+const AdvancedSettings = ({ backend, setBackend, customMarket, setCustomMarket, locale, setLocale }) => {
+  const styles = useStyles();
+  
+  const handleClear = () => {
+    setBackend('https://qsl-api.krnl64.win');
+    setCustomMarket('');
+    setLocale('en-US');
+  };
+
+  return (
+    <Dialog>
+      <DialogTrigger disableButtonEnhancement>
+        <Button appearance="subtle" icon={<SettingsRegular />}>
+           <span className={styles.hideOnMobile}>Advanced</span>
+        </Button>
+      </DialogTrigger>
+      <DialogSurface>
+        <DialogBody>
+          <DialogTitle>Advanced Configuration</DialogTitle>
+          <DialogContent style={{ display: 'flex', flexDirection: 'column', gap: '16px', paddingTop: '12px' }}>
+            <div>
+              <Label weight="semibold">API Backend</Label>
+              <Input 
+                style={{ width: '100%' }} 
+                value={backend} 
+                onChange={(e, d) => setBackend(d.value)} 
+                placeholder="https://qsl-api.krnl64.win" 
+              />
+            </div>
+            <div>
+              <Label weight="semibold">Override Market (ISO)</Label>
+              <Input 
+                style={{ width: '100%' }} 
+                value={customMarket} 
+                onChange={(e, d) => setCustomMarket(d.value)} 
+                placeholder="e.g. CN, RU" 
+              />
+            </div>
+            <div>
+              <Label weight="semibold">Override Locale</Label>
+              <Input
+                style={{ width: '100%' }}
+                value={locale}
+                onChange={(e, d) => setLocale(d.value)}
+                placeholder="e.g. en-US"
+              />
+            </div>
+          </DialogContent>
+          <DialogActions>
+            <Button appearance="subtle" onClick={handleClear}>Reset Defaults</Button>
+            <DialogTrigger disableButtonEnhancement>
+              <Button appearance="primary">Done</Button>
+            </DialogTrigger>
+          </DialogActions>
+        </DialogBody>
+      </DialogSurface>
+    </Dialog>
+  );
+};
+
+const ResultsTable = ({ results }) => {
+  const styles = useStyles();
+  const [copiedIndex, setCopiedIndex] = useState(null);
+
+  const handleCopy = (url, index) => {
+    navigator.clipboard.writeText(url);
+    setCopiedIndex(index);
+    setTimeout(() => setCopiedIndex(null), 2000);
+  };
+
+  const getTypeColor = (type) => {
+    if (type === 'APPX') return 'brand';
+    if (type === 'BlockMap') return 'important';
+    return 'neutral';
+  };
+
+  return (
+    <Card className={styles.card} style={{ padding: 0, overflow: 'hidden' }}>
+      <CardHeader 
+        header={<Body1 weight="bold" size={500}>Result Files ({results.length})</Body1>} 
+        style={{ padding: '16px 24px', borderBottom: `1px solid ${tokens.colorNeutralStroke2}` }}
+      />
+      <div className={styles.tableContainer}>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              {/* 稍微调大 Name 列的占比 */}
+              <TableHeaderCell style={{ width: '45%' }}>File Name</TableHeaderCell>
+              <TableHeaderCell style={{ width: '15%' }}>Size</TableHeaderCell>
+              <TableHeaderCell style={{ width: '15%' }}>Type</TableHeaderCell>
+              <TableHeaderCell style={{ width: '25%' }}>Actions</TableHeaderCell>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {results.map((item, idx) => (
+              <TableRow key={idx}>
+                <TableCell>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <DocumentRegular 
+                      style={{ flexShrink: 0, color: tokens.colorNeutralForeground3 }} 
+                    />
+                    
+                    {/* Tooltip + 单行截断 */}
+                    <Tooltip content={item.name} relationship="label">
+                      <span style={{ 
+                        whiteSpace: 'nowrap', 
+                        overflow: 'hidden', 
+                        textOverflow: 'ellipsis',
+                        maxWidth: '400px',
+                        display: 'block',
+                        cursor: 'default'
+                      }}>
+                        {item.name}
+                      </span>
+                    </Tooltip>
+                  </div>
+                </TableCell>
+                <TableCell style={{ whiteSpace: 'nowrap' }}>{item.size}</TableCell>
+                <TableCell>
+                  <Badge appearance="tint" color={getTypeColor(item.type)}>{item.type}</Badge>
+                </TableCell>
+                <TableCell>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <Tooltip content="Download File" relationship="label">
+                      <Button 
+                        as="a" 
+                        href={item.url} 
+                        target="_blank" 
+                        icon={<ArrowDownloadRegular />} 
+                        appearance="subtle"
+                        aria-label="Download"
+                      />
+                    </Tooltip>
+                    <Tooltip content="Copy Link" relationship="label">
+                      <Button
+                        icon={copiedIndex === idx ? <CheckmarkRegular color={tokens.colorPaletteGreenForeground1} /> : <CopyRegular />}
+                        appearance="subtle"
+                        onClick={() => handleCopy(item.url, idx)}
+                        aria-label="Copy Link"
+                      />
+                    </Tooltip>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </Card>
+  );
+};
 
 function App() {
   const styles = useStyles();
 
-  // 记住设置功能：初始化时读取 localStorage
-  const [isDark, setIsDark] = useState(() => localStorage.getItem('theme') !== 'light');
-  const [backend, setBackend] = useState(() => localStorage.getItem('backend') || 'https://qsl-api.krnl64.win');
-  const [customMarket, setCustomMarket] = useState(() => localStorage.getItem('customMarket') || '');
-
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [results, setResults] = useState([]);
-
+  // State
+  const [isDark, setIsDark] = useLocalStorage('theme_dark', true);
+  const [backend, setBackend] = useLocalStorage('qsl_backend', 'https://qsl-api.krnl64.win');
+  const [customMarket, setCustomMarket] = useLocalStorage('qsl_market', '');
+  
   const [formData, setFormData] = useState({
     productInput: '',
     market: 'US',
@@ -134,214 +355,183 @@ function App() {
     includeNonAppx: true,
   });
 
-  // 监听变化并写入 localStorage
-  useEffect(() => {
-    localStorage.setItem('theme', isDark ? 'dark' : 'light');
-    localStorage.setItem('backend', backend);
-    localStorage.setItem('customMarket', customMarket);
-  }, [isDark, backend, customMarket]);
+  const [status, setStatus] = useState({ loading: false, error: null });
+  const [results, setResults] = useState([]);
+  
+  // AbortController ref to handle race conditions
+  const abortControllerRef = useRef(null);
 
-  const handleClearSettings = () => {
-    setBackend('https://qsl-api.krnl64.win');
-    setCustomMarket('');
-    setFormData(p => ({ ...p, locale: 'en-US' }));
-    localStorage.removeItem('backend');
-    localStorage.removeItem('customMarket');
-  };
-
+  // Handlers
   const handleResolve = async () => {
     if (!formData.productInput) return;
-    setLoading(true);
-    setError('');
+
+    // Cancel previous request
+    if (abortControllerRef.current) abortControllerRef.current.abort();
+    abortControllerRef.current = new AbortController();
+
+    setStatus({ loading: true, error: null });
+    setResults([]);
 
     try {
       const apiUrl = `${backend.replace(/\/$/, '')}/api/links/resolve-all`;
+      const payload = {
+        ...formData,
+        market: customMarket || formData.market
+      };
+
       const res = await fetch(apiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          market: customMarket || formData.market
-        }),
+        body: JSON.stringify(payload),
+        signal: abortControllerRef.current.signal
       });
 
-      if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(`Server responded with ${res.status}: ${errorText.substring(0, 100)}`);
+      }
+
       const data = await res.json();
+      
+      // Normalize data structure
+      const appx = normalizeData(data.appxPackages || data.appx || data.Appx, 'APPX');
+      const nonAppx = normalizeData(data.nonAppxPackages || data.nonAppx || data.NonAppx, 'Other');
 
-      const appx = data.appxPackages || data.appx || data.Appx || [];
-      const nonAppx = data.nonAppxPackages || data.nonAppx || data.NonAppx || [];
+      const finalResults = [...appx, ...nonAppx];
+      
+      if (finalResults.length === 0) {
+        throw new Error("No download links found for this product ID/URL.");
+      }
 
-      setResults([
-        ...appx.map(i => ({ ...i, type: 'APPX' })),
-        ...nonAppx.map(i => ({ ...i, type: 'Non-APPX' }))
-      ]);
+      setResults(finalResults);
+      setStatus({ loading: false, error: null });
+
     } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+      if (err.name === 'AbortError') return;
+      setStatus({ loading: false, error: err.message });
     }
   };
 
   return (
-    <FluentProvider theme={isDark ? webDarkTheme : webLightTheme} className={styles.root}>
-      <nav className={styles.topNav}>
-        <Button
-          appearance="subtle"
-          icon={isDark ? <WeatherSunnyRegular /> : <WeatherMoonRegular />}
-          onClick={() => setIsDark(!isDark)}
-        />
+    <FluentProvider theme={isDark ? webDarkTheme : webLightTheme}>
+      <div className={styles.root}>
+        
+        {/* Navigation */}
+        <nav className={styles.nav}>
+          <Button
+            appearance="subtle"
+            icon={isDark ? <WeatherSunnyRegular /> : <WeatherMoonRegular />}
+            onClick={() => setIsDark(!isDark)}
+            aria-label="Toggle Theme"
+          />
+          <AdvancedSettings 
+            backend={backend} setBackend={setBackend}
+            customMarket={customMarket} setCustomMarket={setCustomMarket}
+            locale={formData.locale} setLocale={(val) => setFormData(prev => ({...prev, locale: val}))}
+          />
+        </nav>
 
-        <Dialog>
-          <DialogTrigger disableButtonEnhancement>
-            <Button appearance="subtle" icon={<SettingsRegular />}>Advanced</Button>
-          </DialogTrigger>
-          <DialogSurface>
-            <DialogBody>
-              <DialogTitle>Advanced Settings</DialogTitle>
-              <DialogContent className={styles.dialogContent}>
-                <div>
-                  <Label weight="semibold">Backend Server</Label>
-                  <Input style={{ width: '100%' }} value={backend} onChange={(e) => setBackend(e.target.value)} placeholder="https://qsl-api.krnl64.win" />
-                </div>
-                <div>
-                  <Label weight="semibold">Override Market (ISO)</Label>
-                  <Input style={{ width: '100%' }} value={customMarket} onChange={(e) => setCustomMarket(e.target.value)} placeholder="e.g. CN, US, JP" />
-                </div>
-                <div>
-                  <Label weight="semibold">Override Locale</Label>
-                  <Input
-                    style={{ width: '100%' }}
-                    value={formData.locale}
-                    onChange={(e) => setFormData(p => ({ ...p, locale: e.target.value }))}
-                    placeholder="e.g. en-US, zh-CN"
-                  />
-                </div>
-              </DialogContent>
-              <DialogActions>
-                <Button
-                  appearance="subtle"
-                  onClick={handleClearSettings}
-                >
-                  Clear Settings
-                </Button>
-                <DialogTrigger disableButtonEnhancement>
-                  <Button appearance="primary">Close</Button>
-                </DialogTrigger>
-              </DialogActions>
-            </DialogBody>
-          </DialogSurface>
-        </Dialog>
-      </nav>
+        <main className={styles.container}>
+          
+          {/* Header */}
+          <header className={styles.header}>
+            <Cube24Regular style={{ fontSize: 48, color: tokens.colorBrandForeground1 }} />
+            <Title1>Query Store Links</Title1>
+            <Body1 size={400} style={{ color: tokens.colorNeutralForeground2 }}>
+              Generate direct download links from Microsoft Store
+            </Body1>
+          </header>
 
-      <main className={styles.container}>
-        <header className={styles.header}>
-          <Title1 color={tokens.colorBrandForeground1} style={{ fontSize: '3rem' }}>QueryStoreLinks</Title1>
-        </header>
-
-        <Card style={{ padding: '30px' }}>
-          <div className={styles.heroInputSection}>
-            <Label htmlFor="url" size="large" weight="bold">Product URL or ID</Label>
-            <Input
-              id="url"
-              contentBefore={<BoxRegular />}
-              size="large"
-              style={{ width: '100%' }}
-              placeholder="Paste URL or ID (e.g., 9WZDNCRFJBMP)"
-              value={formData.productInput}
-              onChange={(e) => setFormData(p => ({ ...p, productInput: e.target.value }))}
-            />
-          </div>
-
-          <div className={styles.controlsGrid}>
-            <div>
-              <Label weight="semibold">Market</Label>
-              <Select style={{ width: '100%' }} value={formData.market} onChange={(e) => setFormData(p => ({ ...p, market: e.target.value }))}>
-                <option value="US">United States (US)</option>
-                <option value="CN">China (CN)</option>
-                <option value="GB">United Kingdom (GB)</option>
-              </Select>
+          {/* Main Input Card */}
+          <Card className={styles.card}>
+            <div className={styles.inputSection}>
+              <Label htmlFor="url-input" size="large" weight="semibold" required>Product URL or ID</Label>
+              <Input
+                id="url-input"
+                contentBefore={<BoxRegular />}
+                size="large"
+                placeholder="e.g. 9WZDNCRFJBMP or https://apps.microsoft.com/..."
+                value={formData.productInput}
+                onChange={(e, d) => setFormData(p => ({ ...p, productInput: d.value }))}
+                onKeyDown={(e) => e.key === "Enter" && handleResolve()}
+              />
             </div>
 
-            <div>
-              <Label weight="semibold">Locale</Label>
-              <Select
-                style={{ width: '100%' }}
-                value={formData.locale}
-                onChange={(e) => setFormData(p => ({ ...p, locale: e.target.value }))}
-              >
-                <option value="en-US">English (US)</option>
-                <option value="zh-CN">Chinese (Simplified)</option>
-                <option value="ja-JP">Japanese (JP)</option>
-                <option value="de-DE">German (DE)</option>
-              </Select>
-            </div>
-
-            <div>
-              <Label weight="semibold">Ring</Label>
-              <Select style={{ width: '100%' }} value={formData.ring} onChange={(e) => setFormData(p => ({ ...p, ring: e.target.value }))}>
-                <option value="Retail">Retail</option>
-                <option value="RP">Release Preview</option>
-                <option value="Fast">Insider Fast</option>
-                <option value="Slow">Slow</option>
-              </Select>
-            </div>
-
-            <div className={styles.actions}>
-              <div style={{ display: 'flex', gap: '20px' }}>
-                <Checkbox label="APPX" checked={formData.includeAppx} onChange={(e, d) => setFormData(p => ({ ...p, includeAppx: !!d.checked }))} />
-                <Checkbox label="Non-APPX" checked={formData.includeNonAppx} onChange={(e, d) => setFormData(p => ({ ...p, includeNonAppx: !!d.checked }))} />
+            <div className={styles.gridControls}>
+              <div>
+                <Label weight="semibold">Market</Label>
+                <Select style={{ width: '100%' }} value={formData.market} onChange={(e, d) => setFormData(p => ({ ...p, market: d.value }))}>
+                  <option value="US">United States (US)</option>
+                  <option value="CN">China (CN)</option>
+                  <option value="GB">United Kingdom (GB)</option>
+                  <option value="JP">Japan (JP)</option>
+                  <option value="DE">Germany (DE)</option>
+                </Select>
               </div>
+
+              <div>
+                <Label weight="semibold">Ring</Label>
+                <Select style={{ width: '100%' }} value={formData.ring} onChange={(e, d) => setFormData(p => ({ ...p, ring: d.value }))}>
+                  <option value="Retail">Retail (Stable)</option>
+                  <option value="RP">Release Preview</option>
+                  <option value="Fast">Insider Fast (Dev)</option>
+                  <option value="Slow">Insider Slow (Beta)</option>
+                </Select>
+              </div>
+
+              <div>
+                <Label weight="semibold">Filter</Label>
+                <div className={styles.checkboxGroup}>
+                  <Checkbox label="APPX" checked={formData.includeAppx} onChange={(e, d) => setFormData(p => ({ ...p, includeAppx: !!d.checked }))} />
+                  <Checkbox label="Non-APPX" checked={formData.includeNonAppx} onChange={(e, d) => setFormData(p => ({ ...p, includeNonAppx: !!d.checked }))} />
+                </div>
+              </div>
+            </div>
+
+            {status.loading && <ProgressBar style={{ marginTop: '24px' }} />}
+
+            <div className={styles.actionRow}>
+              <Body1 size={200} style={{ color: tokens.colorNeutralForeground3 }}>
+                Ready to fetch links from {formData.ring} ring.
+              </Body1>
               <Button
                 appearance="primary"
                 icon={<SearchRegular />}
                 size="large"
-                loading={loading}
-                disabled={loading || !formData.productInput}
+                disabled={status.loading || !formData.productInput}
                 onClick={handleResolve}
               >
-                {loading ? "Resolving..." : "Resolve Links"}
+                Resolve Links
               </Button>
             </div>
-          </div>
-        </Card>
-
-        {error && <div className={styles.errorBox}><ErrorCircleRegular /> {error}</div>}
-
-        {results.length > 0 && (
-          <Card>
-            <CardHeader header={<Body1 weight="bold">Results ({results.length})</Body1>} />
-            <div style={{ overflowX: 'auto' }}>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHeaderCell>File Name</TableHeaderCell>
-                    <TableHeaderCell style={{ width: '120px' }}>Size</TableHeaderCell>
-                    <TableHeaderCell style={{ width: '100px' }}>Type</TableHeaderCell>
-                    <TableHeaderCell style={{ width: '100px' }}>Link</TableHeaderCell>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {results.map((item, idx) => (
-                    <TableRow key={idx}>
-                      <TableCell><DocumentRegular style={{ marginRight: '8px' }} /> {item.fileName || item.FileName}</TableCell>
-                      <TableCell>{item.fileSize || item.FileSize}</TableCell>
-                      <TableCell><Badge appearance="tint">{item.type}</Badge></TableCell>
-                      <TableCell><Link href={item.fileLink || item.FileLink} target="_blank">Download</Link></TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
           </Card>
-        )}
-      </main>
 
-      <footer className={styles.footer}>
-        <CodeRegular />
-        <Link href="https://github.com/query-store-links" target="_blank">GitHub</Link>
-        <span>•</span>
-        <Body1>© 2025 QueryStoreLinks</Body1>
-      </footer>
+          {/* Error Message */}
+          {status.error && (
+            <MessageBar intent="error">
+              <MessageBarBody>
+                <MessageBarTitle>Resolution Failed</MessageBarTitle>
+                {status.error}
+              </MessageBarBody>
+            </MessageBar>
+          )}
+
+          {/* Results */}
+          {results.length > 0 && <ResultsTable results={results} />}
+
+        </main>
+
+        {/* Footer */}
+        <footer className={styles.footer}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <CodeRegular />
+            <Link href="https://github.com/ntkrnl64/query-store-links" target="_blank">GitHub</Link>
+          </div>
+          <span>•</span>
+          <Body1>© 2025 QueryStoreLinks</Body1>
+        </footer>
+
+      </div>
     </FluentProvider>
   );
 }
