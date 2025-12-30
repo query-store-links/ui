@@ -81,6 +81,36 @@ const normalizeData = (items, type) => {
   }));
 };
 
+const extractProductId = (input) => {
+  if (!input) return "";
+  const trimmed = input.trim();
+
+  try {
+    const urlMatch = trimmed.match(/apps\.microsoft\.com\/(?:.*\/)?(?:detail|productId)\/([A-Z0-9]+)/i);
+    if (urlMatch && urlMatch[1]) {
+      return urlMatch[1].toUpperCase();
+    }
+
+    if (trimmed.includes('http')) {
+      const url = new URL(trimmed);
+      const pathSegments = url.pathname.split('/');
+      for (const segment of pathSegments) {
+        if (/^[A-Z0-9]{12,}$/i.test(segment)) {
+          return segment.toUpperCase();
+        }
+      }
+    }
+  } catch (e) {
+  }
+
+  if (/^[A-Z0-9]{12,}$/i.test(trimmed)) {
+    return trimmed.toUpperCase();
+  }
+
+  return trimmed;
+};
+
+
 const useStyles = makeStyles({
   root: {
     minHeight: '100vh',
@@ -93,9 +123,8 @@ const useStyles = makeStyles({
     justifyContent: 'flex-end',
     ...shorthands.padding('16px', '24px'),
     gap: '8px',
-    // 手机端减少 Padding
     '@media (max-width: 600px)': {
-       ...shorthands.padding('12px', '16px'),
+      ...shorthands.padding('12px', '16px'),
     }
   },
   container: {
@@ -109,8 +138,8 @@ const useStyles = makeStyles({
     flexGrow: 1,
     boxSizing: 'border-box',
     '@media (max-width: 600px)': {
-       ...shorthands.padding('0', '16px', '24px'),
-       gap: '16px',
+      ...shorthands.padding('0', '16px', '24px'),
+      gap: '16px',
     }
   },
   header: {
@@ -126,7 +155,7 @@ const useStyles = makeStyles({
     boxShadow: tokens.shadow8,
     backgroundColor: tokens.colorNeutralBackground1,
     '@media (max-width: 600px)': {
-       ...shorthands.padding('16px'),
+      ...shorthands.padding('16px'),
     }
   },
   inputSection: {
@@ -137,9 +166,9 @@ const useStyles = makeStyles({
   },
   gridControls: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(100%, 1fr))', 
+    gridTemplateColumns: 'repeat(auto-fit, minmax(100%, 1fr))',
     '@media (min-width: 600px)': {
-        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
     },
     gap: '20px',
     alignItems: 'end',
@@ -157,15 +186,15 @@ const useStyles = makeStyles({
     flexWrap: 'wrap',
     gap: '16px',
     '@media (max-width: 600px)': {
-       flexDirection: 'column',
-       alignItems: 'stretch',
+      flexDirection: 'column',
+      alignItems: 'stretch',
     }
   },
   tableContainer: {
     overflowX: 'auto',
     maxHeight: '600px',
     overflowY: 'auto',
-    WebkitOverflowScrolling: 'touch', 
+    WebkitOverflowScrolling: 'touch',
   },
   footer: {
     display: 'flex',
@@ -188,7 +217,7 @@ const useStyles = makeStyles({
 
 const AdvancedSettings = ({ backend, setBackend, customMarket, setCustomMarket, locale, setLocale }) => {
   const styles = useStyles();
-  
+
   const handleClear = () => {
     setBackend('https://qsl-api.krnl64.win');
     setCustomMarket('');
@@ -199,7 +228,7 @@ const AdvancedSettings = ({ backend, setBackend, customMarket, setCustomMarket, 
     <Dialog>
       <DialogTrigger disableButtonEnhancement>
         <Button appearance="subtle" icon={<SettingsRegular />}>
-           <span className={styles.hideOnMobile}>Advanced</span>
+          <span className={styles.hideOnMobile}>Advanced</span>
         </Button>
       </DialogTrigger>
       <DialogSurface>
@@ -208,20 +237,20 @@ const AdvancedSettings = ({ backend, setBackend, customMarket, setCustomMarket, 
           <DialogContent style={{ display: 'flex', flexDirection: 'column', gap: '16px', paddingTop: '12px' }}>
             <div>
               <Label weight="semibold">API Backend</Label>
-              <Input 
-                style={{ width: '100%' }} 
-                value={backend} 
-                onChange={(e, d) => setBackend(d.value)} 
-                placeholder="https://qsl-api.krnl64.win" 
+              <Input
+                style={{ width: '100%' }}
+                value={backend}
+                onChange={(e, d) => setBackend(d.value)}
+                placeholder="https://qsl-api.krnl64.win"
               />
             </div>
             <div>
               <Label weight="semibold">Override Market (ISO)</Label>
-              <Input 
-                style={{ width: '100%' }} 
-                value={customMarket} 
-                onChange={(e, d) => setCustomMarket(d.value)} 
-                placeholder="e.g. CN, RU" 
+              <Input
+                style={{ width: '100%' }}
+                value={customMarket}
+                onChange={(e, d) => setCustomMarket(d.value)}
+                placeholder="e.g. CN, RU"
               />
             </div>
             <div>
@@ -264,19 +293,18 @@ const ResultsTable = ({ results }) => {
 
   return (
     <Card className={styles.card} style={{ padding: 0, overflow: 'hidden' }}>
-      <CardHeader 
-        header={<Body1 weight="bold" size={500}>Result Files ({results.length})</Body1>} 
+      <CardHeader
+        header={<Body1 weight="bold" size={500}>Result Files ({results.length})</Body1>}
         style={{ padding: '16px 24px', borderBottom: `1px solid ${tokens.colorNeutralStroke2}` }}
       />
       <div className={styles.tableContainer}>
         <Table>
           <TableHeader>
             <TableRow>
-              {/* 稍微调大 Name 列的占比 */}
-              <TableHeaderCell style={{ width: '45%' }}>File Name</TableHeaderCell>
-              <TableHeaderCell style={{ width: '15%' }}>Size</TableHeaderCell>
-              <TableHeaderCell style={{ width: '15%' }}>Type</TableHeaderCell>
-              <TableHeaderCell style={{ width: '25%' }}>Actions</TableHeaderCell>
+              <TableHeaderCell style={{ minWidth: '220px', width: '45%' }}>File Name</TableHeaderCell>
+              <TableHeaderCell style={{ minWidth: '80px', width: '15%' }}>Size</TableHeaderCell>
+              <TableHeaderCell style={{ minWidth: '80px', width: '15%' }}>Type</TableHeaderCell>
+              <TableHeaderCell style={{ minWidth: '100px', width: '25%' }}>Actions</TableHeaderCell>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -284,17 +312,16 @@ const ResultsTable = ({ results }) => {
               <TableRow key={idx}>
                 <TableCell>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <DocumentRegular 
-                      style={{ flexShrink: 0, color: tokens.colorNeutralForeground3 }} 
+                    <DocumentRegular
+                      style={{ flexShrink: 0, color: tokens.colorNeutralForeground3 }}
                     />
-                    
-                    {/* Tooltip + 单行截断 */}
+
                     <Tooltip content={item.name} relationship="label">
-                      <span style={{ 
-                        whiteSpace: 'nowrap', 
-                        overflow: 'hidden', 
+                      <span style={{
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
                         textOverflow: 'ellipsis',
-                        maxWidth: '400px',
+                        maxWidth: '100%',
                         display: 'block',
                         cursor: 'default'
                       }}>
@@ -310,11 +337,11 @@ const ResultsTable = ({ results }) => {
                 <TableCell>
                   <div style={{ display: 'flex', gap: 8 }}>
                     <Tooltip content="Download File" relationship="label">
-                      <Button 
-                        as="a" 
-                        href={item.url} 
-                        target="_blank" 
-                        icon={<ArrowDownloadRegular />} 
+                      <Button
+                        as="a"
+                        href={item.url}
+                        target="_blank"
+                        icon={<ArrowDownloadRegular />}
                         appearance="subtle"
                         aria-label="Download"
                       />
@@ -341,31 +368,29 @@ const ResultsTable = ({ results }) => {
 function App() {
   const styles = useStyles();
 
-  // State
   const [isDark, setIsDark] = useLocalStorage('theme_dark', true);
   const [backend, setBackend] = useLocalStorage('qsl_backend', 'https://qsl-api.krnl64.win');
   const [customMarket, setCustomMarket] = useLocalStorage('qsl_market', '');
-  
+
   const [formData, setFormData] = useState({
     productInput: '',
     market: 'US',
     locale: 'en-US',
     ring: 'Retail',
+    identifierType: 'ProductID',
     includeAppx: true,
     includeNonAppx: true,
   });
 
   const [status, setStatus] = useState({ loading: false, error: null });
   const [results, setResults] = useState([]);
-  
-  // AbortController ref to handle race conditions
+
+  // AbortController ref
   const abortControllerRef = useRef(null);
 
-  // Handlers
   const handleResolve = async () => {
     if (!formData.productInput) return;
 
-    // Cancel previous request
     if (abortControllerRef.current) abortControllerRef.current.abort();
     abortControllerRef.current = new AbortController();
 
@@ -374,8 +399,14 @@ function App() {
 
     try {
       const apiUrl = `${backend.replace(/\/$/, '')}/api/links/resolve-all`;
+
+      const finalInput = formData.identifierType === 'ProductID'
+        ? extractProductId(formData.productInput)
+        : formData.productInput.trim();
+
       const payload = {
         ...formData,
+        productInput: finalInput,
         market: customMarket || formData.market
       };
 
@@ -392,13 +423,12 @@ function App() {
       }
 
       const data = await res.json();
-      
-      // Normalize data structure
+
       const appx = normalizeData(data.appxPackages || data.appx || data.Appx, 'APPX');
       const nonAppx = normalizeData(data.nonAppxPackages || data.nonAppx || data.NonAppx, 'Other');
 
       const finalResults = [...appx, ...nonAppx];
-      
+
       if (finalResults.length === 0) {
         throw new Error("No download links found for this product ID/URL.");
       }
@@ -415,7 +445,7 @@ function App() {
   return (
     <FluentProvider theme={isDark ? webDarkTheme : webLightTheme}>
       <div className={styles.root}>
-        
+
         {/* Navigation */}
         <nav className={styles.nav}>
           <Button
@@ -424,15 +454,15 @@ function App() {
             onClick={() => setIsDark(!isDark)}
             aria-label="Toggle Theme"
           />
-          <AdvancedSettings 
+          <AdvancedSettings
             backend={backend} setBackend={setBackend}
             customMarket={customMarket} setCustomMarket={setCustomMarket}
-            locale={formData.locale} setLocale={(val) => setFormData(prev => ({...prev, locale: val}))}
+            locale={formData.locale} setLocale={(val) => setFormData(prev => ({ ...prev, locale: val }))}
           />
         </nav>
 
         <main className={styles.container}>
-          
+
           {/* Header */}
           <header className={styles.header}>
             <Cube24Regular style={{ fontSize: 48, color: tokens.colorBrandForeground1 }} />
@@ -455,6 +485,23 @@ function App() {
                 onChange={(e, d) => setFormData(p => ({ ...p, productInput: d.value }))}
                 onKeyDown={(e) => e.key === "Enter" && handleResolve()}
               />
+            </div>
+
+            <div>
+              <Label weight="semibold">ID Type</Label>
+              <Select
+                style={{ width: '100%' }}
+                value={formData.identifierType}
+                onChange={(e, d) => setFormData(p => ({ ...p, identifierType: d.value }))}
+              >
+                <option value="ProductID">Product ID</option>
+                <option value="PackageFamilyName">Package Family Name</option>
+                <option value="XboxTitleID">Xbox Title ID</option>
+                <option value="ContentID">Content ID</option>
+                <option value="LegacyWindowsPhoneProductID">Legacy Phone ID</option>
+                <option value="LegacyWindowsStoreProductID">Legacy Store ID</option>
+                <option value="LegacyXboxProductID">Legacy Xbox ID</option>
+              </Select>
             </div>
 
             <div className={styles.gridControls}>
