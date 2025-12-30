@@ -118,7 +118,7 @@ function App() {
 
   // 记住设置功能：初始化时读取 localStorage
   const [isDark, setIsDark] = useState(() => localStorage.getItem('theme') !== 'light');
-  const [backend, setBackend] = useState(() => localStorage.getItem('backend') || 'https://qsl-worker-api.krnl64.win');
+  const [backend, setBackend] = useState(() => localStorage.getItem('backend') || 'https://qsl-api.krnl64.win');
   const [customMarket, setCustomMarket] = useState(() => localStorage.getItem('customMarket') || '');
 
   const [loading, setLoading] = useState(false);
@@ -142,7 +142,7 @@ function App() {
   }, [isDark, backend, customMarket]);
 
   const handleClearSettings = () => {
-    setBackend('https://qsl-worker-api.krnl64.win');
+    setBackend('https://qsl-api.krnl64.win');
     setCustomMarket('');
     setFormData(p => ({ ...p, locale: 'en-US' }));
     localStorage.removeItem('backend');
@@ -201,7 +201,7 @@ function App() {
               <DialogContent className={styles.dialogContent}>
                 <div>
                   <Label weight="semibold">Backend Server</Label>
-                  <Input style={{ width: '100%' }} value={backend} onChange={(e) => setBackend(e.target.value)} placeholder="https://qsl-worker-api.krnl64.win" />
+                  <Input style={{ width: '100%' }} value={backend} onChange={(e) => setBackend(e.target.value)} placeholder="https://qsl-api.krnl64.win" />
                 </div>
                 <div>
                   <Label weight="semibold">Override Market (ISO)</Label>
