@@ -55,10 +55,11 @@ function useLocalStorage(key, defaultValue) {
   const [value, setValue] = useState(() => {
     try {
       const raw = localStorage.getItem(key);
-      return raw ? JSON.parse(raw) : defaultValue;
-    } catch {
-      return defaultValue;
-    }
+      if (raw !== null) {
+        return JSON.parse(raw);
+      }
+    } catch { }
+    return defaultValue instanceof Function ? defaultValue() : defaultValue;
   });
 
   const setAndStore = (newValue) => {
@@ -368,7 +369,13 @@ const ResultsTable = ({ results }) => {
 function App() {
   const styles = useStyles();
 
-  const [isDark, setIsDark] = useLocalStorage('theme_dark', true);
+  const [isDark, setIsDark] = useLocalStorage('theme_dark', () => {
+    if (typeof window !== 'undefined' && window.matchMedia) {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+    return true;
+  });
+
   const [backend, setBackend] = useLocalStorage('qsl_backend', 'https://qsl-api.krnl64.win');
   const [customMarket, setCustomMarket] = useLocalStorage('qsl_market', '');
 
