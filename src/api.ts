@@ -30,10 +30,14 @@ function pickArray(
 
 export function parseApiResponse(raw: unknown): ApiResponse {
   if (!raw || typeof raw !== "object") return {};
-  const r = raw as RawRecord;
+  // Normalize top-level keys to camelCase so AppxPackages, appxPackages, appx all resolve uniformly
+  const r: RawRecord = {};
+  for (const [k, v] of Object.entries(raw as RawRecord)) {
+    r[k.charAt(0).toLowerCase() + k.slice(1)] = v;
+  }
   return {
-    appx: pickArray(r, "appxPackages", "appx", "Appx"),
-    nonAppx: pickArray(r, "nonAppxPackages", "nonAppx", "NonAppx"),
+    appx: pickArray(r, "appxPackages", "appx"),
+    nonAppx: pickArray(r, "nonAppxPackages", "nonAppx"),
   };
 }
 
