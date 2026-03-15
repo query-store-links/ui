@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {
   Card,
   CardHeader,
-  Body1,
+  Text,
   Table,
   TableHeader,
   TableRow,
@@ -22,6 +22,11 @@ import {
   CopyRegular,
   CheckmarkRegular,
 } from '@fluentui/react-icons';
+import type { NormalizedItem } from '../utils/helpers';
+
+interface ResultsTableProps {
+  results: NormalizedItem[];
+}
 
 const useStyles = makeStyles({
   card: {
@@ -40,26 +45,26 @@ const useStyles = makeStyles({
   },
 });
 
-const ResultsTable = ({ results }) => {
+const ResultsTable: React.FC<ResultsTableProps> = ({ results }) => {
   const styles = useStyles();
-  const [copiedIndex, setCopiedIndex] = useState(null);
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
-  const handleCopy = (url, index) => {
+  const handleCopy = (url: string, index: number) => {
     navigator.clipboard.writeText(url);
     setCopiedIndex(index);
     setTimeout(() => setCopiedIndex(null), 2000);
   };
 
-  const getTypeColor = (type) => {
+  const getTypeColor = (type: string): 'brand' | 'important' | undefined => {
     if (type === 'APPX') return 'brand';
     if (type === 'BlockMap') return 'important';
-    return 'neutral';
+    return undefined;
   };
 
   return (
     <Card className={styles.card} style={{ padding: 0, overflow: 'hidden' }}>
       <CardHeader
-        header={<Body1 weight="bold" size={500}>Result Files ({results.length})</Body1>}
+        header={<Text weight="bold" size={500}>Result Files ({results.length})</Text>}
         style={{ padding: '16px 24px', borderBottom: `1px solid ${tokens.colorNeutralStroke2}` }}
       />
       <div className={styles.tableContainer}>

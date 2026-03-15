@@ -6,13 +6,30 @@ import {
   Select,
   Checkbox,
   Button,
-  Body1,
+  Text,
   ProgressBar,
   makeStyles,
   shorthands,
   tokens
 } from '@fluentui/react-components';
 import { BoxRegular, SearchRegular } from '@fluentui/react-icons';
+
+export interface SearchFormData {
+  productInput: string;
+  market: string;
+  locale: string;
+  ring: string;
+  identifierType: string;
+  includeAppx: boolean;
+  includeNonAppx: boolean;
+}
+
+interface SearchFormProps {
+  formData: SearchFormData;
+  setFormData: React.Dispatch<React.SetStateAction<SearchFormData>>;
+  onResolve: () => void;
+  loading: boolean;
+}
 
 const useStyles = makeStyles({
   card: {
@@ -57,10 +74,10 @@ const useStyles = makeStyles({
   },
 });
 
-const SearchForm = ({ formData, setFormData, onResolve, loading }) => {
+const SearchForm: React.FC<SearchFormProps> = ({ formData, setFormData, onResolve, loading }) => {
   const styles = useStyles();
 
-  const handleChange = (key, value) => {
+  const handleChange = <K extends keyof SearchFormData>(key: K, value: SearchFormData[K]) => {
     setFormData(prev => ({ ...prev, [key]: value }));
   };
 
@@ -74,8 +91,8 @@ const SearchForm = ({ formData, setFormData, onResolve, loading }) => {
           size="large"
           placeholder="e.g. 9WZDNCRFJBMP or https://apps.microsoft.com/..."
           value={formData.productInput}
-          onChange={(e, d) => handleChange('productInput', d.value)}
-          onKeyDown={(e) => e.key === "Enter" && onResolve()}
+          onChange={(_, d) => handleChange('productInput', d.value)}
+          onKeyDown={(e) => e.key === 'Enter' && onResolve()}
         />
       </div>
 
@@ -84,7 +101,7 @@ const SearchForm = ({ formData, setFormData, onResolve, loading }) => {
         <Select
           style={{ width: '100%' }}
           value={formData.identifierType}
-          onChange={(e, d) => handleChange('identifierType', d.value)}
+          onChange={(_, d) => handleChange('identifierType', d.value)}
         >
           <option value="ProductID">Product ID</option>
           <option value="PackageFamilyName">Package Family Name</option>
@@ -99,7 +116,7 @@ const SearchForm = ({ formData, setFormData, onResolve, loading }) => {
       <div className={styles.gridControls}>
         <div>
           <Label weight="semibold">Market</Label>
-          <Select style={{ width: '100%' }} value={formData.market} onChange={(e, d) => handleChange('market', d.value)}>
+          <Select style={{ width: '100%' }} value={formData.market} onChange={(_, d) => handleChange('market', d.value)}>
             <option value="US">United States (US)</option>
             <option value="CN">China (CN)</option>
             <option value="GB">United Kingdom (GB)</option>
@@ -110,7 +127,7 @@ const SearchForm = ({ formData, setFormData, onResolve, loading }) => {
 
         <div>
           <Label weight="semibold">Ring</Label>
-          <Select style={{ width: '100%' }} value={formData.ring} onChange={(e, d) => handleChange('ring', d.value)}>
+          <Select style={{ width: '100%' }} value={formData.ring} onChange={(_, d) => handleChange('ring', d.value)}>
             <option value="Retail">Retail (Stable)</option>
             <option value="RP">Release Preview</option>
             <option value="Fast">Insider Fast (Dev)</option>
@@ -121,8 +138,8 @@ const SearchForm = ({ formData, setFormData, onResolve, loading }) => {
         <div>
           <Label weight="semibold">Filter</Label>
           <div className={styles.checkboxGroup}>
-            <Checkbox label="APPX" checked={formData.includeAppx} onChange={(e, d) => handleChange('includeAppx', !!d.checked)} />
-            <Checkbox label="Non-APPX" checked={formData.includeNonAppx} onChange={(e, d) => handleChange('includeNonAppx', !!d.checked)} />
+            <Checkbox label="APPX" checked={formData.includeAppx} onChange={(_, d) => handleChange('includeAppx', !!d.checked)} />
+            <Checkbox label="Non-APPX" checked={formData.includeNonAppx} onChange={(_, d) => handleChange('includeNonAppx', !!d.checked)} />
           </div>
         </div>
       </div>
@@ -130,9 +147,9 @@ const SearchForm = ({ formData, setFormData, onResolve, loading }) => {
       {loading && <ProgressBar style={{ marginTop: '24px' }} />}
 
       <div className={styles.actionRow}>
-        <Body1 size={200} style={{ color: tokens.colorNeutralForeground3 }}>
+        <Text size={200} style={{ color: tokens.colorNeutralForeground3 }}>
           Ready to fetch links from {formData.ring} ring.
-        </Body1>
+        </Text>
         <Button
           appearance="primary"
           icon={<SearchRegular />}

@@ -8,14 +8,9 @@ import {
   tokens,
 } from '@fluentui/react-components';
 
-// Hooks
 import { useLocalStorage } from './hooks/useLocalStorage';
-
-// Components
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
-
-// Pages
 import Home from './pages/Home';
 import LinkGenerator from './pages/LinkGenerator';
 
@@ -31,29 +26,31 @@ const useStyles = makeStyles({
 function App() {
   const styles = useStyles();
 
-  // Global config
-  const [isDark, setIsDark] = useLocalStorage('theme_dark', () => {
+  const [isDark, setIsDark] = useLocalStorage<boolean>('theme_dark', () => {
     if (typeof window !== 'undefined' && window.matchMedia) {
       return window.matchMedia('(prefers-color-scheme: dark)').matches;
     }
     return true;
   });
-  const [backend, setBackend] = useLocalStorage('qsl_backend', 'https://qsl-api.krnl64.win');
-  const [customMarket, setCustomMarket] = useLocalStorage('qsl_market', '');
+  const [backend, setBackend] = useLocalStorage<string>('qsl_backend', 'https://qsl-api.krnl64.win');
+  const [customMarket, setCustomMarket] = useLocalStorage<string>('qsl_market', '');
+  const [locale, setLocale] = useLocalStorage<string>('qsl_locale', 'en-US');
 
   return (
     <FluentProvider theme={isDark ? webDarkTheme : webLightTheme}>
       <div className={styles.root}>
         <BrowserRouter>
-          <Navbar 
-            isDark={isDark} 
+          <Navbar
+            isDark={isDark}
             setIsDark={setIsDark}
             backend={backend}
             setBackend={setBackend}
             customMarket={customMarket}
             setCustomMarket={setCustomMarket}
+            locale={locale}
+            setLocale={setLocale}
           />
-          
+
           <Routes>
             <Route path="/" element={<Home backend={backend} customMarket={customMarket} />} />
             <Route path="/generator" element={<LinkGenerator />} />

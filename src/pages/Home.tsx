@@ -8,13 +8,20 @@ import {
   MessageBarTitle,
 } from '@fluentui/react-components';
 
-// Utils
-import { normalizeData, extractProductId } from '../utils/helpers';
-
-// Components
+import { normalizeData, extractProductId, type ApiResponse, type NormalizedItem } from '../utils/helpers';
 import Header from '../components/Header';
-import SearchForm from '../components/SearchForm';
+import SearchForm, { type SearchFormData } from '../components/SearchForm';
 import ResultsTable from '../components/ResultsTable';
+
+interface HomeProps {
+  backend: string;
+  customMarket: string;
+}
+
+interface Status {
+  loading: boolean;
+  error: string | null;
+}
 
 const useStyles = makeStyles({
   container: {
@@ -34,12 +41,11 @@ const useStyles = makeStyles({
   },
 });
 
-const Home = ({ backend, customMarket }) => {
+const Home: React.FC<HomeProps> = ({ backend, customMarket }) => {
   const styles = useStyles();
   const [searchParams] = useSearchParams();
 
-  // Form Data
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<SearchFormData>({
     productInput: '',
     market: 'US',
     locale: 'en-US',
@@ -49,18 +55,17 @@ const Home = ({ backend, customMarket }) => {
     includeNonAppx: true,
   });
 
-  const [status, setStatus] = useState({ loading: false, error: null });
-  const [results, setResults] = useState([]);
-  const abortControllerRef = useRef(null);
+  const [status, setStatus] = useState<Status>({ loading: false, error: null });
+  const [results, setResults] = useState<NormalizedItem[]>([]);
+  const abortControllerRef = useRef<AbortController | null>(null);
   const isFirstRun = useRef(true);
 
-  // Handle Resolve APIs
-  const handleResolve = async (overrideData = null) => {
-    const currentData = overrideData || formData;
+  const handleResolve = async (overrideData?: SearchFormData) => {
+    const currentData = overrideData ?? formData;
 
     if (!currentData.productInput) return;
 
-    if (abortControllerRef.current) abortControllerRef.current.abort();
+    abortControllerRef.current?.abort();
     abortControllerRef.current = new AbortController();
 
     setStatus({ loading: true, error: null });
@@ -76,14 +81,14 @@ const Home = ({ backend, customMarket }) => {
       const payload = {
         ...currentData,
         productInput: finalInput,
-        market: customMarket || currentData.market
+        market: customMarket || currentData.market,
       };
 
       const res = await fetch(apiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
-        signal: abortControllerRef.current.signal
+        signal: abortControllerRef.current.signal,
       });
 
       if (!res.ok) {
@@ -91,25 +96,24 @@ const Home = ({ backend, customMarket }) => {
         throw new Error(`Server responded with ${res.status}: ${errorText.substring(0, 100)}`);
       }
 
-      const data = await res.json();
-      const appx = normalizeData(data.appxPackages || data.appx || data.Appx, 'APPX');
-      const nonAppx = normalizeData(data.nonAppxPackages || data.nonAppx || data.NonAppx, 'Other');
+      const data: ApiResponse = await res.json();
+      const appx = normalizeData(data.appxPackages ?? data.appx ?? data.Appx, 'APPX');
+      const nonAppx = normalizeData(data.nonAppxPackages ?? data.nonAppx ?? data.NonAppx, 'Other');
       const finalResults = [...appx, ...nonAppx];
 
       if (finalResults.length === 0) {
-        throw new Error("No download links found for this product ID/URL.");
+        throw new Error('No download links found for this product ID/URL.');
       }
 
       setResults(finalResults);
       setStatus({ loading: false, error: null });
 
     } catch (err) {
-      if (err.name === 'AbortError') return;
-      setStatus({ loading: false, error: err.message });
+      if (err instanceof Error && err.name === 'AbortError') return;
+      setStatus({ loading: false, error: err instanceof Error ? err.message : String(err) });
     }
   };
 
-  // Check url query parameters on first render
   useEffect(() => {
     if (!isFirstRun.current) return;
     isFirstRun.current = false;
@@ -121,17 +125,16 @@ const Home = ({ backend, customMarket }) => {
     const locale = searchParams.get('locale');
 
     if (id) {
-      const newData = {
+      const newData: SearchFormData = {
         ...formData,
         productInput: id,
-        identifierType: type || formData.identifierType,
-        market: market || formData.market,
-        ring: ring || formData.ring,
-        locale: locale || formData.locale,
+        identifierType: type ?? formData.identifierType,
+        market: market ?? formData.market,
+        ring: ring ?? formData.ring,
+        locale: locale ?? formData.locale,
       };
 
       setFormData(newData);
-      
       handleResolve(newData);
     }
   }, [searchParams]);
@@ -140,11 +143,11 @@ const Home = ({ backend, customMarket }) => {
     <main className={styles.container}>
       <Header />
 
-      <SearchForm 
-        formData={formData} 
-        setFormData={setFormData} 
-        onResolve={() => handleResolve()} 
-        loading={status.loading} 
+      <SearchForm
+        formData={formData}
+        setFormData={setFormData}
+        onResolve={() => handleResolve()}
+        loading={status.loading}
       />
 
       {status.error && (

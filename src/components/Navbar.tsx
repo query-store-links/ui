@@ -1,18 +1,29 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { 
-  Button, 
-  makeStyles, 
+import {
+  Button,
+  makeStyles,
   shorthands,
-  tokens 
+  tokens
 } from '@fluentui/react-components';
-import { 
-  WeatherMoonRegular, 
+import {
+  WeatherMoonRegular,
   WeatherSunnyRegular,
   LinkRegular,
   HomeRegular
 } from '@fluentui/react-icons';
 import AdvancedSettings from './AdvancedSettings';
+
+interface NavbarProps {
+  isDark: boolean;
+  setIsDark: (value: boolean) => void;
+  backend: string;
+  setBackend: (value: string) => void;
+  customMarket: string;
+  setCustomMarket: (value: string) => void;
+  locale: string;
+  setLocale: (value: string) => void;
+}
 
 const useStyles = makeStyles({
   nav: {
@@ -34,7 +45,16 @@ const useStyles = makeStyles({
   }
 });
 
-const Navbar = ({ isDark, setIsDark, backend, setBackend, customMarket, setCustomMarket, locale, setLocale }) => {
+const Navbar: React.FC<NavbarProps> = ({
+  isDark,
+  setIsDark,
+  backend,
+  setBackend,
+  customMarket,
+  setCustomMarket,
+  locale,
+  setLocale,
+}) => {
   const styles = useStyles();
   const navigate = useNavigate();
   const location = useLocation();
@@ -44,16 +64,16 @@ const Navbar = ({ isDark, setIsDark, backend, setBackend, customMarket, setCusto
   return (
     <nav className={styles.nav}>
       <div className={styles.navLinks}>
-        <Button 
-          appearance={isHome ? "subtle" : "transparent"}
+        <Button
+          appearance={isHome ? 'subtle' : 'transparent'}
           icon={<HomeRegular />}
           onClick={() => navigate('/')}
           style={{ fontWeight: isHome ? 'bold' : 'normal', color: isHome ? tokens.colorBrandForeground1 : 'inherit' }}
         >
           Home
         </Button>
-        <Button 
-          appearance={!isHome ? "subtle" : "transparent"}
+        <Button
+          appearance={!isHome ? 'subtle' : 'transparent'}
           icon={<LinkRegular />}
           onClick={() => navigate('/generator')}
           style={{ fontWeight: !isHome ? 'bold' : 'normal', color: !isHome ? tokens.colorBrandForeground1 : 'inherit' }}

@@ -17,6 +17,14 @@ import {
   OpenRegular
 } from '@fluentui/react-icons';
 
+interface LinkParams {
+  id: string;
+  idType: string;
+  market: string;
+  ring: string;
+  locale: string;
+}
+
 const useStyles = makeStyles({
   container: {
     width: '100%',
@@ -55,22 +63,21 @@ const useStyles = makeStyles({
   }
 });
 
-const LinkGenerator = () => {
+const LinkGenerator: React.FC = () => {
   const styles = useStyles();
 
-  const [params, setParams] = useState({
+  const [params, setParams] = useState<LinkParams>({
     id: '',
     idType: 'ProductID',
     market: 'US',
     ring: 'Retail',
-    locale: 'en-US'
+    locale: 'en-US',
   });
 
   const [generatedUrl, setGeneratedUrl] = useState('');
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    // Generate the link based on params
     const baseUrl = window.location.origin;
     const search = new URLSearchParams();
 
@@ -103,7 +110,7 @@ const LinkGenerator = () => {
             <Input
               style={{ width: '100%' }}
               value={params.id}
-              onChange={(e, d) => setParams(p => ({ ...p, id: d.value }))}
+              onChange={(_, d) => setParams(p => ({ ...p, id: d.value }))}
               placeholder="e.g. 9WZDNCRFJBMP"
             />
           </div>
@@ -114,7 +121,7 @@ const LinkGenerator = () => {
               <Select
                 style={{ width: '100%' }}
                 value={params.idType}
-                onChange={(e, d) => setParams(p => ({ ...p, idType: d.value }))}
+                onChange={(_, d) => setParams(p => ({ ...p, idType: d.value }))}
               >
                 <option value="ProductID">Product ID</option>
                 <option value="PackageFamilyName">Package Family Name</option>
@@ -130,7 +137,7 @@ const LinkGenerator = () => {
               <Select
                 style={{ width: '100%' }}
                 value={params.ring}
-                onChange={(e, d) => setParams(p => ({ ...p, ring: d.value }))}
+                onChange={(_, d) => setParams(p => ({ ...p, ring: d.value }))}
               >
                 <option value="Retail">Retail</option>
                 <option value="RP">Release Preview</option>
@@ -146,7 +153,7 @@ const LinkGenerator = () => {
               <Select
                 style={{ width: '100%' }}
                 value={params.market}
-                onChange={(e, d) => setParams(p => ({ ...p, market: d.value }))}
+                onChange={(_, d) => setParams(p => ({ ...p, market: d.value }))}
               >
                 <option value="US">US</option>
                 <option value="CN">CN</option>
@@ -159,7 +166,7 @@ const LinkGenerator = () => {
               <Input
                 style={{ width: '100%' }}
                 value={params.locale}
-                onChange={(e, d) => setParams(p => ({ ...p, locale: d.value }))}
+                onChange={(_, d) => setParams(p => ({ ...p, locale: d.value }))}
               />
             </div>
           </div>
@@ -178,7 +185,7 @@ const LinkGenerator = () => {
                 icon={copied ? <CheckmarkRegular /> : <CopyRegular />}
                 onClick={handleCopy}
               >
-                {copied ? "Copied" : "Copy Link"}
+                {copied ? 'Copied' : 'Copy Link'}
               </Button>
               <Button
                 appearance="subtle"

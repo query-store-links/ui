@@ -14,6 +14,15 @@ import {
 } from '@fluentui/react-components';
 import { SettingsRegular } from '@fluentui/react-icons';
 
+interface AdvancedSettingsProps {
+  backend: string;
+  setBackend: (value: string) => void;
+  customMarket: string;
+  setCustomMarket: (value: string) => void;
+  locale: string;
+  setLocale: (value: string) => void;
+}
+
 const useStyles = makeStyles({
   hideOnMobile: {
     '@media (max-width: 600px)': {
@@ -22,7 +31,14 @@ const useStyles = makeStyles({
   }
 });
 
-const AdvancedSettings = ({ backend, setBackend, customMarket, setCustomMarket, locale, setLocale }) => {
+const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
+  backend,
+  setBackend,
+  customMarket,
+  setCustomMarket,
+  locale,
+  setLocale,
+}) => {
   const styles = useStyles();
 
   const handleClear = () => {
@@ -47,7 +63,7 @@ const AdvancedSettings = ({ backend, setBackend, customMarket, setCustomMarket, 
               <Input
                 style={{ width: '100%' }}
                 value={backend}
-                onChange={(e, d) => setBackend(d.value)}
+                onChange={(_, d) => setBackend(d.value)}
                 placeholder="https://qsl-api.krnl64.win"
               />
             </div>
@@ -56,7 +72,7 @@ const AdvancedSettings = ({ backend, setBackend, customMarket, setCustomMarket, 
               <Input
                 style={{ width: '100%' }}
                 value={customMarket}
-                onChange={(e, d) => setCustomMarket(d.value)}
+                onChange={(_, d) => setCustomMarket(d.value)}
                 placeholder="e.g. CN, RU"
               />
             </div>
@@ -65,7 +81,7 @@ const AdvancedSettings = ({ backend, setBackend, customMarket, setCustomMarket, 
               <Input
                 style={{ width: '100%' }}
                 value={locale}
-                onChange={(e, d) => setLocale(d.value)}
+                onChange={(_, d) => setLocale(d.value)}
                 placeholder="e.g. en-US"
               />
             </div>

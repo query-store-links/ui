@@ -17,7 +17,7 @@ const useStyles = makeStyles({
   },
 });
 
-const Footer = () => {
+const Footer: React.FC = () => {
   const styles = useStyles();
   return (
     <footer className={styles.footer}>
