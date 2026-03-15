@@ -8,12 +8,8 @@ import {
   MessageBarTitle,
 } from "@fluentui/react-components";
 
-import {
-  normalizeData,
-  extractProductId,
-  type ApiResponse,
-  type NormalizedItem,
-} from "../utils/helpers";
+import { resolveLinks } from "../api";
+import type { NormalizedItem } from "../types";
 import Header from "../components/Header";
 import SearchForm, { type SearchFormData } from "../components/SearchForm";
 import ResultsTable from "../components/ResultsTable";
@@ -77,49 +73,13 @@ const Home: React.FC<HomeProps> = ({ backend, customMarket }) => {
     setResults([]);
 
     try {
-      const apiUrl = `${backend.replace(/\/$/, "")}/api/links/resolve-all`;
-
-      const finalInput =
-        currentData.identifierType === "ProductID"
-          ? extractProductId(currentData.productInput)
-          : currentData.productInput.trim();
-
-      const payload = {
-        ...currentData,
-        productInput: finalInput,
-        market: customMarket || currentData.market,
-      };
-
-      const res = await fetch(apiUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-        signal: abortControllerRef.current.signal,
-      });
-
-      if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(
-          `Server responded with ${res.status}: ${errorText.substring(0, 100)}`,
-        );
-      }
-
-      const data: ApiResponse = await res.json();
-      const appx = normalizeData(
-        data.appxPackages ?? data.appx ?? data.Appx,
-        "APPX",
+      const results = await resolveLinks(
+        backend,
+        customMarket,
+        currentData,
+        abortControllerRef.current.signal,
       );
-      const nonAppx = normalizeData(
-        data.nonAppxPackages ?? data.nonAppx ?? data.NonAppx,
-        "Other",
-      );
-      const finalResults = [...appx, ...nonAppx];
-
-      if (finalResults.length === 0) {
-        throw new Error("No download links found for this product ID/URL.");
-      }
-
-      setResults(finalResults);
+      setResults(results);
       setStatus({ loading: false, error: null });
     } catch (err) {
       if (err instanceof Error && err.name === "AbortError") return;

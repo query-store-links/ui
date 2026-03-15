@@ -22,7 +22,7 @@ import {
   CopyRegular,
   CheckmarkRegular,
 } from "@fluentui/react-icons";
-import type { NormalizedItem } from "../utils/helpers";
+import type { NormalizedItem } from "../types";
 
 interface ResultsTableProps {
   results: NormalizedItem[];
