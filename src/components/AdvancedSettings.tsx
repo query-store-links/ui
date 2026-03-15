@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   Dialog,
   DialogTrigger,
@@ -11,8 +11,8 @@ import {
   Input,
   Label,
   makeStyles,
-} from '@fluentui/react-components';
-import { SettingsRegular } from '@fluentui/react-icons';
+} from "@fluentui/react-components";
+import { SettingsRegular } from "@fluentui/react-icons";
 
 interface AdvancedSettingsProps {
   backend: string;
@@ -25,10 +25,10 @@ interface AdvancedSettingsProps {
 
 const useStyles = makeStyles({
   hideOnMobile: {
-    '@media (max-width: 600px)': {
-      display: 'none',
-    }
-  }
+    "@media (max-width: 600px)": {
+      display: "none",
+    },
+  },
 });
 
 const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
@@ -42,9 +42,9 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
   const styles = useStyles();
 
   const handleClear = () => {
-    setBackend('https://qsl-api.krnl64.win');
-    setCustomMarket('');
-    setLocale('en-US');
+    setBackend("https://qsl-api.krnl64.win");
+    setCustomMarket("");
+    setLocale("en-US");
   };
 
   return (
@@ -57,11 +57,18 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
       <DialogSurface>
         <DialogBody>
           <DialogTitle>Advanced Configuration</DialogTitle>
-          <DialogContent style={{ display: 'flex', flexDirection: 'column', gap: '16px', paddingTop: '12px' }}>
+          <DialogContent
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "16px",
+              paddingTop: "12px",
+            }}
+          >
             <div>
               <Label weight="semibold">API Backend</Label>
               <Input
-                style={{ width: '100%' }}
+                style={{ width: "100%" }}
                 value={backend}
                 onChange={(_, d) => setBackend(d.value)}
                 placeholder="https://qsl-api.krnl64.win"
@@ -70,7 +77,7 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
             <div>
               <Label weight="semibold">Override Market (ISO)</Label>
               <Input
-                style={{ width: '100%' }}
+                style={{ width: "100%" }}
                 value={customMarket}
                 onChange={(_, d) => setCustomMarket(d.value)}
                 placeholder="e.g. CN, RU"
@@ -79,7 +86,7 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
             <div>
               <Label weight="semibold">Override Locale</Label>
               <Input
-                style={{ width: '100%' }}
+                style={{ width: "100%" }}
                 value={locale}
                 onChange={(_, d) => setLocale(d.value)}
                 placeholder="e.g. en-US"
@@ -87,7 +94,9 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
             </div>
           </DialogContent>
           <DialogActions>
-            <Button appearance="subtle" onClick={handleClear}>Reset Defaults</Button>
+            <Button appearance="subtle" onClick={handleClear}>
+              Reset Defaults
+            </Button>
             <DialogTrigger disableButtonEnhancement>
               <Button appearance="primary">Done</Button>
             </DialogTrigger>

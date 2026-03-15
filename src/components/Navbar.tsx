@@ -1,18 +1,18 @@
-import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Button,
   makeStyles,
   shorthands,
-  tokens
-} from '@fluentui/react-components';
+  tokens,
+} from "@fluentui/react-components";
 import {
   WeatherMoonRegular,
   WeatherSunnyRegular,
   LinkRegular,
-  HomeRegular
-} from '@fluentui/react-icons';
-import AdvancedSettings from './AdvancedSettings';
+  HomeRegular,
+} from "@fluentui/react-icons";
+import AdvancedSettings from "./AdvancedSettings";
 
 interface NavbarProps {
   isDark: boolean;
@@ -27,22 +27,22 @@ interface NavbarProps {
 
 const useStyles = makeStyles({
   nav: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    ...shorthands.padding('16px', '24px'),
-    '@media (max-width: 600px)': {
-      ...shorthands.padding('12px', '16px'),
-    }
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    ...shorthands.padding("16px", "24px"),
+    "@media (max-width: 600px)": {
+      ...shorthands.padding("12px", "16px"),
+    },
   },
   rightSection: {
-    display: 'flex',
-    gap: '8px',
+    display: "flex",
+    gap: "8px",
   },
   navLinks: {
-    display: 'flex',
-    gap: '8px',
-  }
+    display: "flex",
+    gap: "8px",
+  },
 });
 
 const Navbar: React.FC<NavbarProps> = ({
@@ -59,24 +59,30 @@ const Navbar: React.FC<NavbarProps> = ({
   const navigate = useNavigate();
   const location = useLocation();
 
-  const isHome = location.pathname === '/';
+  const isHome = location.pathname === "/";
 
   return (
     <nav className={styles.nav}>
       <div className={styles.navLinks}>
         <Button
-          appearance={isHome ? 'subtle' : 'transparent'}
+          appearance={isHome ? "subtle" : "transparent"}
           icon={<HomeRegular />}
-          onClick={() => navigate('/')}
-          style={{ fontWeight: isHome ? 'bold' : 'normal', color: isHome ? tokens.colorBrandForeground1 : 'inherit' }}
+          onClick={() => navigate("/")}
+          style={{
+            fontWeight: isHome ? "bold" : "normal",
+            color: isHome ? tokens.colorBrandForeground1 : "inherit",
+          }}
         >
           Home
         </Button>
         <Button
-          appearance={!isHome ? 'subtle' : 'transparent'}
+          appearance={!isHome ? "subtle" : "transparent"}
           icon={<LinkRegular />}
-          onClick={() => navigate('/generator')}
-          style={{ fontWeight: !isHome ? 'bold' : 'normal', color: !isHome ? tokens.colorBrandForeground1 : 'inherit' }}
+          onClick={() => navigate("/generator")}
+          style={{
+            fontWeight: !isHome ? "bold" : "normal",
+            color: !isHome ? tokens.colorBrandForeground1 : "inherit",
+          }}
         >
           Generator
         </Button>

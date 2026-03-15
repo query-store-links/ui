@@ -1,24 +1,24 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import React from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import {
   FluentProvider,
   webDarkTheme,
   webLightTheme,
   makeStyles,
   tokens,
-} from '@fluentui/react-components';
+} from "@fluentui/react-components";
 
-import { useLocalStorage } from './hooks/useLocalStorage';
-import Navbar from './components/Navbar';
-import Footer from './components/Footer';
-import Home from './pages/Home';
-import LinkGenerator from './pages/LinkGenerator';
+import { useLocalStorage } from "./hooks/useLocalStorage";
+import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
+import Home from "./pages/Home";
+import LinkGenerator from "./pages/LinkGenerator";
 
 const useStyles = makeStyles({
   root: {
-    minHeight: '100vh',
-    display: 'flex',
-    flexDirection: 'column',
+    minHeight: "100vh",
+    display: "flex",
+    flexDirection: "column",
     backgroundColor: tokens.colorNeutralBackground2,
   },
 });
@@ -26,15 +26,21 @@ const useStyles = makeStyles({
 function App() {
   const styles = useStyles();
 
-  const [isDark, setIsDark] = useLocalStorage<boolean>('theme_dark', () => {
-    if (typeof window !== 'undefined' && window.matchMedia) {
-      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const [isDark, setIsDark] = useLocalStorage<boolean>("theme_dark", () => {
+    if (typeof window !== "undefined" && window.matchMedia) {
+      return window.matchMedia("(prefers-color-scheme: dark)").matches;
     }
     return true;
   });
-  const [backend, setBackend] = useLocalStorage<string>('qsl_backend', 'https://qsl-api.krnl64.win');
-  const [customMarket, setCustomMarket] = useLocalStorage<string>('qsl_market', '');
-  const [locale, setLocale] = useLocalStorage<string>('qsl_locale', 'en-US');
+  const [backend, setBackend] = useLocalStorage<string>(
+    "qsl_backend",
+    "https://qsl-api.krnl64.win",
+  );
+  const [customMarket, setCustomMarket] = useLocalStorage<string>(
+    "qsl_market",
+    "",
+  );
+  const [locale, setLocale] = useLocalStorage<string>("qsl_locale", "en-US");
 
   return (
     <FluentProvider theme={isDark ? webDarkTheme : webLightTheme}>
@@ -52,7 +58,10 @@ function App() {
           />
 
           <Routes>
-            <Route path="/" element={<Home backend={backend} customMarket={customMarket} />} />
+            <Route
+              path="/"
+              element={<Home backend={backend} customMarket={customMarket} />}
+            />
             <Route path="/generator" element={<LinkGenerator />} />
           </Routes>
 

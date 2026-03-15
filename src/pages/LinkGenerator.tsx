@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Card,
   Title2,
@@ -9,13 +9,13 @@ import {
   makeStyles,
   shorthands,
   tokens,
-  Textarea
-} from '@fluentui/react-components';
+  Textarea,
+} from "@fluentui/react-components";
 import {
   CopyRegular,
   CheckmarkRegular,
-  OpenRegular
-} from '@fluentui/react-icons';
+  OpenRegular,
+} from "@fluentui/react-icons";
 
 interface LinkParams {
   id: string;
@@ -27,65 +27,69 @@ interface LinkParams {
 
 const useStyles = makeStyles({
   container: {
-    width: '100%',
-    maxWidth: '800px',
-    margin: '0 auto',
-    ...shorthands.padding('24px'),
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '24px',
+    width: "100%",
+    maxWidth: "800px",
+    margin: "0 auto",
+    ...shorthands.padding("24px"),
+    display: "flex",
+    flexDirection: "column",
+    gap: "24px",
     flexGrow: 1,
   },
   card: {
-    ...shorthands.padding('32px'),
+    ...shorthands.padding("32px"),
     boxShadow: tokens.shadow8,
     backgroundColor: tokens.colorNeutralBackground1,
   },
   gridTwo: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '20px',
-    marginBottom: '16px',
-    '@media (max-width: 600px)': {
-      gridTemplateColumns: '1fr',
-    }
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: "20px",
+    marginBottom: "16px",
+    "@media (max-width: 600px)": {
+      gridTemplateColumns: "1fr",
+    },
   },
   resultArea: {
-    marginTop: '24px',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '8px',
+    marginTop: "24px",
+    display: "flex",
+    flexDirection: "column",
+    gap: "8px",
   },
   buttonGroup: {
-    display: 'flex',
-    gap: '12px',
-    marginTop: '8px',
-  }
+    display: "flex",
+    gap: "12px",
+    marginTop: "8px",
+  },
 });
 
 const LinkGenerator: React.FC = () => {
   const styles = useStyles();
 
   const [params, setParams] = useState<LinkParams>({
-    id: '',
-    idType: 'ProductID',
-    market: 'US',
-    ring: 'Retail',
-    locale: 'en-US',
+    id: "",
+    idType: "ProductID",
+    market: "US",
+    ring: "Retail",
+    locale: "en-US",
   });
 
-  const [generatedUrl, setGeneratedUrl] = useState('');
+  const [generatedUrl, setGeneratedUrl] = useState("");
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const baseUrl = window.location.origin;
     const search = new URLSearchParams();
 
-    if (params.id) search.set('id', params.id);
-    if (params.idType && params.idType !== 'ProductID') search.set('idType', params.idType);
-    if (params.market && params.market !== 'US') search.set('market', params.market);
-    if (params.ring && params.ring !== 'Retail') search.set('ring', params.ring);
-    if (params.locale && params.locale !== 'en-US') search.set('locale', params.locale);
+    if (params.id) search.set("id", params.id);
+    if (params.idType && params.idType !== "ProductID")
+      search.set("idType", params.idType);
+    if (params.market && params.market !== "US")
+      search.set("market", params.market);
+    if (params.ring && params.ring !== "Retail")
+      search.set("ring", params.ring);
+    if (params.locale && params.locale !== "en-US")
+      search.set("locale", params.locale);
 
     setGeneratedUrl(`${baseUrl}/?${search.toString()}`);
   }, [params]);
@@ -98,19 +102,20 @@ const LinkGenerator: React.FC = () => {
 
   return (
     <div className={styles.container}>
-      <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+      <div style={{ textAlign: "center", marginBottom: "16px" }}>
         <Title2>Link Generator</Title2>
       </div>
 
       <Card className={styles.card}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-
+        <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
           <div>
-            <Label required weight="semibold">Product ID / URL</Label>
+            <Label required weight="semibold">
+              Product ID / URL
+            </Label>
             <Input
-              style={{ width: '100%' }}
+              style={{ width: "100%" }}
               value={params.id}
-              onChange={(_, d) => setParams(p => ({ ...p, id: d.value }))}
+              onChange={(_, d) => setParams((p) => ({ ...p, id: d.value }))}
               placeholder="e.g. 9WZDNCRFJBMP"
             />
           </div>
@@ -119,25 +124,31 @@ const LinkGenerator: React.FC = () => {
             <div>
               <Label weight="semibold">ID Type</Label>
               <Select
-                style={{ width: '100%' }}
+                style={{ width: "100%" }}
                 value={params.idType}
-                onChange={(_, d) => setParams(p => ({ ...p, idType: d.value }))}
+                onChange={(_, d) =>
+                  setParams((p) => ({ ...p, idType: d.value }))
+                }
               >
                 <option value="ProductID">Product ID</option>
                 <option value="PackageFamilyName">Package Family Name</option>
                 <option value="XboxTitleID">Xbox Title ID</option>
                 <option value="ContentID">Content ID</option>
-                <option value="LegacyWindowsPhoneProductID">Legacy Phone ID</option>
-                <option value="LegacyWindowsStoreProductID">Legacy Store ID</option>
+                <option value="LegacyWindowsPhoneProductID">
+                  Legacy Phone ID
+                </option>
+                <option value="LegacyWindowsStoreProductID">
+                  Legacy Store ID
+                </option>
                 <option value="LegacyXboxProductID">Legacy Xbox ID</option>
               </Select>
             </div>
             <div>
               <Label weight="semibold">Ring</Label>
               <Select
-                style={{ width: '100%' }}
+                style={{ width: "100%" }}
                 value={params.ring}
-                onChange={(_, d) => setParams(p => ({ ...p, ring: d.value }))}
+                onChange={(_, d) => setParams((p) => ({ ...p, ring: d.value }))}
               >
                 <option value="Retail">Retail</option>
                 <option value="RP">Release Preview</option>
@@ -151,9 +162,11 @@ const LinkGenerator: React.FC = () => {
             <div>
               <Label weight="semibold">Market</Label>
               <Select
-                style={{ width: '100%' }}
+                style={{ width: "100%" }}
                 value={params.market}
-                onChange={(_, d) => setParams(p => ({ ...p, market: d.value }))}
+                onChange={(_, d) =>
+                  setParams((p) => ({ ...p, market: d.value }))
+                }
               >
                 <option value="US">US</option>
                 <option value="CN">CN</option>
@@ -164,20 +177,24 @@ const LinkGenerator: React.FC = () => {
             <div>
               <Label weight="semibold">Locale</Label>
               <Input
-                style={{ width: '100%' }}
+                style={{ width: "100%" }}
                 value={params.locale}
-                onChange={(_, d) => setParams(p => ({ ...p, locale: d.value }))}
+                onChange={(_, d) =>
+                  setParams((p) => ({ ...p, locale: d.value }))
+                }
               />
             </div>
           </div>
 
           <div className={styles.resultArea}>
-            <Label weight="semibold" size="large">Generated Link</Label>
+            <Label weight="semibold" size="large">
+              Generated Link
+            </Label>
             <Textarea
               value={generatedUrl}
               readOnly
               rows={3}
-              style={{ fontFamily: 'monospace', fontSize: '12px' }}
+              style={{ fontFamily: "monospace", fontSize: "12px" }}
             />
             <div className={styles.buttonGroup}>
               <Button
@@ -185,7 +202,7 @@ const LinkGenerator: React.FC = () => {
                 icon={copied ? <CheckmarkRegular /> : <CopyRegular />}
                 onClick={handleCopy}
               >
-                {copied ? 'Copied' : 'Copy Link'}
+                {copied ? "Copied" : "Copy Link"}
               </Button>
               <Button
                 appearance="subtle"
@@ -198,7 +215,6 @@ const LinkGenerator: React.FC = () => {
               </Button>
             </div>
           </div>
-
         </div>
       </Card>
     </div>

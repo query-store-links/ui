@@ -1,4 +1,4 @@
-export type PackageType = 'APPX' | 'Other';
+export type PackageType = "APPX" | "Other";
 
 // API response items can come in either camelCase or PascalCase
 interface ApiItemCamel {
@@ -36,37 +36,42 @@ export interface NormalizedItem {
   type: PackageType;
 }
 
-export const normalizeData = (items: ApiResponseItem[] | undefined, type: PackageType): NormalizedItem[] => {
+export const normalizeData = (
+  items: ApiResponseItem[] | undefined,
+  type: PackageType,
+): NormalizedItem[] => {
   if (!items || !Array.isArray(items)) return [];
-  return items.map(item => ({
-    name: item.fileName ?? item.FileName ?? 'Unknown',
-    size: item.fileSize ?? item.FileSize ?? 'N/A',
-    url: item.fileLink ?? item.FileLink ?? '#',
+  return items.map((item) => ({
+    name: item.fileName ?? item.FileName ?? "Unknown",
+    size: item.fileSize ?? item.FileSize ?? "N/A",
+    url: item.fileLink ?? item.FileLink ?? "#",
     expire: item.fileExpire ?? item.FileExpire,
     type,
   }));
 };
 
 export const extractProductId = (input: string): string => {
-  if (!input) return '';
+  if (!input) return "";
   const trimmed = input.trim();
 
   try {
-    const urlMatch = trimmed.match(/apps\.microsoft\.com\/(?:.*\/)?(?:detail|productId)\/([A-Z0-9]+)/i);
+    const urlMatch = trimmed.match(
+      /apps\.microsoft\.com\/(?:.*\/)?(?:detail|productId)\/([A-Z0-9]+)/i,
+    );
     if (urlMatch?.[1]) {
       return urlMatch[1].toUpperCase();
     }
 
-    if (trimmed.includes('http')) {
+    if (trimmed.includes("http")) {
       const url = new URL(trimmed);
-      const pathSegments = url.pathname.split('/');
+      const pathSegments = url.pathname.split("/");
       for (const segment of pathSegments) {
         if (/^[A-Z0-9]{12,}$/i.test(segment)) {
           return segment.toUpperCase();
         }
       }
     }
-  } catch { }
+  } catch {}
 
   if (/^[A-Z0-9]{12,}$/i.test(trimmed)) {
     return trimmed.toUpperCase();

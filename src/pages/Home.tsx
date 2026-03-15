@@ -1,17 +1,22 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import React, { useState, useRef, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   makeStyles,
   shorthands,
   MessageBar,
   MessageBarBody,
   MessageBarTitle,
-} from '@fluentui/react-components';
+} from "@fluentui/react-components";
 
-import { normalizeData, extractProductId, type ApiResponse, type NormalizedItem } from '../utils/helpers';
-import Header from '../components/Header';
-import SearchForm, { type SearchFormData } from '../components/SearchForm';
-import ResultsTable from '../components/ResultsTable';
+import {
+  normalizeData,
+  extractProductId,
+  type ApiResponse,
+  type NormalizedItem,
+} from "../utils/helpers";
+import Header from "../components/Header";
+import SearchForm, { type SearchFormData } from "../components/SearchForm";
+import ResultsTable from "../components/ResultsTable";
 
 interface HomeProps {
   backend: string;
@@ -25,19 +30,19 @@ interface Status {
 
 const useStyles = makeStyles({
   container: {
-    width: '100%',
-    maxWidth: '1000px',
-    margin: '0 auto',
-    ...shorthands.padding('0', '24px', '48px'),
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '24px',
+    width: "100%",
+    maxWidth: "1000px",
+    margin: "0 auto",
+    ...shorthands.padding("0", "24px", "48px"),
+    display: "flex",
+    flexDirection: "column",
+    gap: "24px",
     flexGrow: 1,
-    boxSizing: 'border-box',
-    '@media (max-width: 600px)': {
-      ...shorthands.padding('0', '16px', '24px'),
-      gap: '16px',
-    }
+    boxSizing: "border-box",
+    "@media (max-width: 600px)": {
+      ...shorthands.padding("0", "16px", "24px"),
+      gap: "16px",
+    },
   },
 });
 
@@ -46,11 +51,11 @@ const Home: React.FC<HomeProps> = ({ backend, customMarket }) => {
   const [searchParams] = useSearchParams();
 
   const [formData, setFormData] = useState<SearchFormData>({
-    productInput: '',
-    market: 'US',
-    locale: 'en-US',
-    ring: 'Retail',
-    identifierType: 'ProductID',
+    productInput: "",
+    market: "US",
+    locale: "en-US",
+    ring: "Retail",
+    identifierType: "ProductID",
     includeAppx: true,
     includeNonAppx: true,
   });
@@ -72,11 +77,12 @@ const Home: React.FC<HomeProps> = ({ backend, customMarket }) => {
     setResults([]);
 
     try {
-      const apiUrl = `${backend.replace(/\/$/, '')}/api/links/resolve-all`;
+      const apiUrl = `${backend.replace(/\/$/, "")}/api/links/resolve-all`;
 
-      const finalInput = currentData.identifierType === 'ProductID'
-        ? extractProductId(currentData.productInput)
-        : currentData.productInput.trim();
+      const finalInput =
+        currentData.identifierType === "ProductID"
+          ? extractProductId(currentData.productInput)
+          : currentData.productInput.trim();
 
       const payload = {
         ...currentData,
@@ -85,32 +91,42 @@ const Home: React.FC<HomeProps> = ({ backend, customMarket }) => {
       };
 
       const res = await fetch(apiUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
         signal: abortControllerRef.current.signal,
       });
 
       if (!res.ok) {
         const errorText = await res.text();
-        throw new Error(`Server responded with ${res.status}: ${errorText.substring(0, 100)}`);
+        throw new Error(
+          `Server responded with ${res.status}: ${errorText.substring(0, 100)}`,
+        );
       }
 
       const data: ApiResponse = await res.json();
-      const appx = normalizeData(data.appxPackages ?? data.appx ?? data.Appx, 'APPX');
-      const nonAppx = normalizeData(data.nonAppxPackages ?? data.nonAppx ?? data.NonAppx, 'Other');
+      const appx = normalizeData(
+        data.appxPackages ?? data.appx ?? data.Appx,
+        "APPX",
+      );
+      const nonAppx = normalizeData(
+        data.nonAppxPackages ?? data.nonAppx ?? data.NonAppx,
+        "Other",
+      );
       const finalResults = [...appx, ...nonAppx];
 
       if (finalResults.length === 0) {
-        throw new Error('No download links found for this product ID/URL.');
+        throw new Error("No download links found for this product ID/URL.");
       }
 
       setResults(finalResults);
       setStatus({ loading: false, error: null });
-
     } catch (err) {
-      if (err instanceof Error && err.name === 'AbortError') return;
-      setStatus({ loading: false, error: err instanceof Error ? err.message : String(err) });
+      if (err instanceof Error && err.name === "AbortError") return;
+      setStatus({
+        loading: false,
+        error: err instanceof Error ? err.message : String(err),
+      });
     }
   };
 
@@ -118,11 +134,11 @@ const Home: React.FC<HomeProps> = ({ backend, customMarket }) => {
     if (!isFirstRun.current) return;
     isFirstRun.current = false;
 
-    const id = searchParams.get('id');
-    const type = searchParams.get('idType');
-    const market = searchParams.get('market');
-    const ring = searchParams.get('ring');
-    const locale = searchParams.get('locale');
+    const id = searchParams.get("id");
+    const type = searchParams.get("idType");
+    const market = searchParams.get("market");
+    const ring = searchParams.get("ring");
+    const locale = searchParams.get("locale");
 
     if (id) {
       const newData: SearchFormData = {
