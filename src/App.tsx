@@ -11,6 +11,7 @@ import {
 import { useLocalStorage } from "./hooks/useLocalStorage";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
+import MigrationBanner from "./components/MigrationBanner";
 import Home from "./pages/Home";
 import LinkGenerator from "./pages/LinkGenerator";
 
@@ -46,6 +47,7 @@ function App() {
     <FluentProvider theme={isDark ? webDarkTheme : webLightTheme}>
       <div className={styles.root}>
         <BrowserRouter>
+          <MigrationBanner />
           <Navbar
             isDark={isDark}
             setIsDark={setIsDark}
